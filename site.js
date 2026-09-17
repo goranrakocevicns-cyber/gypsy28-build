@@ -1,12 +1,6 @@
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-async function loadPosts(){
-  const box=document.getElementById('posts');
-  try{
-    const r=await fetch('/content/posts/index.json',{cache:'no-store'});
-    if(!r.ok)return;
-    const posts=await r.json();
-    if(!posts.length)return;
-    box.innerHTML=posts.map(p=>`<article class="card">${p.image?`<img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy">`:''}<span>${esc(p.category||'DNEVNIK')}</span><h3>${esc(p.title)}</h3><p>${esc(p.summary||'')}</p></article>`).join('');
-  }catch(e){console.error(e)}
-}
-loadPosts();
+let currentLang=localStorage.getItem('gypsy-lang')||'sr';
+function setLang(lang){currentLang=lang;localStorage.setItem('gypsy-lang',lang);document.documentElement.lang=lang;document.querySelectorAll('[data-sr][data-en]').forEach(el=>{el.textContent=el.dataset[lang]||el.dataset.sr});document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));document.title=lang==='en'?'Gypsy 28 Build — Build Journal':'Gypsy 28 Build — Dnevnik izgradnje';loadPosts();}
+document.querySelectorAll('.lang-switch button').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
+async function loadPosts(){const box=document.getElementById('posts');if(!box)return;try{const r=await fetch('/content/posts/index.json',{cache:'no-store'});if(!r.ok)return;const posts=await r.json();if(!posts.length)return;box.innerHTML=posts.map(p=>`<article class="card">${p.image?`<img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy">`:''}<span>${esc(p.category||'DNEVNIK')}</span><h3>${esc(p.title)}</h3><p>${esc(p.summary||'')}</p></article>`).join('')}catch(e){console.error(e)}}
+setLang(currentLang);
