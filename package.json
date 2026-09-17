@@ -1,0 +1,7 @@
+{
+  "name": "gypsy28-build",
+  "private": true,
+  "scripts": {
+    "build": "node build.js"
+  }
+}
