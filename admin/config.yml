@@ -27,8 +27,9 @@ collections:
         name: "gallery"
         widget: "list"
         required: false
-        summary: "Fotografija {{index}}"
+        collapsed: false
         minimize_collapsed: false
+        summary: "Fotografija {{index}}"
         field:
           label: "Fotografija"
           name: "image"
