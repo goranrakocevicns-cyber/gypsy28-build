@@ -10,10 +10,19 @@ main{max-width:900px;margin:auto;padding:28px 18px 70px}.top{display:flex;justif
 <div class="tabs" id="tabs" hidden><button class="action active" data-view="pending">На чекању</button><button class="action secondary" data-view="approved">Одобрени</button><button class="action secondary" data-view="all">Сви</button></div>
 <div id="list"></div>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
 const URL='https://kfpdzqwtninhdkwtjruc.supabase.co',KEY='sb_publishable_a-kAHWFg9Kv3GFVGvxIjTg_c6QlqZbB';
-const sb=supabase.createClient(URL,KEY),st=document.getElementById('status'),list=document.getElementById('list'),tabs=document.getElementById('tabs');
+const st=document.getElementById('status'),list=document.getElementById('list'),tabs=document.getElementById('tabs');
+let sb;
+try{
+  if(!window.supabase || !window.supabase.createClient) throw new Error('Supabase библиотека није учитана.');
+  sb=window.supabase.createClient(URL,KEY);
+}catch(e){
+  st.textContent='ТЕХНИЧКА ГРЕШКА: '+e.message;
+  document.getElementById('login').disabled=true;
+  throw e;
+}
 let comments=[],view='pending';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function login(){
