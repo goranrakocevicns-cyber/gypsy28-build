@@ -12,12 +12,12 @@ main{max-width:900px;margin:auto;padding:28px 18px 70px}.top{display:flex;justif
 </main>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
-const URL='https://kfpdzqwtninhdkwtjruc.supabase.co',KEY='sb_publishable_a-kAHWFg9Kv3GFVGvxIjTg_c6QlqZbB';
+const SUPABASE_URL='https://kfpdzqwtninhdkwtjruc.supabase.co',SUPABASE_KEY='sb_publishable_a-kAHWFg9Kv3GFVGvxIjTg_c6QlqZbB';
 const st=document.getElementById('status'),list=document.getElementById('list'),tabs=document.getElementById('tabs');
 let sb;
 try{
   if(!window.supabase || !window.supabase.createClient) throw new Error('Supabase библиотека није учитана.');
-  sb=window.supabase.createClient(URL,KEY);
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 }catch(e){
   st.textContent='ТЕХНИЧКА ГРЕШКА: '+e.message;
   document.getElementById('login').disabled=true;
