@@ -10,7 +10,7 @@ main{max-width:900px;margin:auto;padding:28px 18px 70px}.top{display:flex;justif
 <div class="tabs" id="tabs" hidden><button class="action active" data-view="pending">На чекању</button><button class="action secondary" data-view="approved">Одобрени</button><button class="action secondary" data-view="all">Сви</button></div>
 <div id="list"></div>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const URL='https://kfpdzqwtninhdkwtjruc.supabase.co',KEY='sb_publishable_a-kAHWFg9Kv3GFVGvxIjTg_c6QlqZbB';
 const sb=supabase.createClient(URL,KEY),st=document.getElementById('status'),list=document.getElementById('list'),tabs=document.getElementById('tabs');
