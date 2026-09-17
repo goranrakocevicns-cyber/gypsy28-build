@@ -16,7 +16,21 @@ const URL='https://kfpdzqwtninhdkwtjruc.supabase.co',KEY='sb_publishable_a-kAHWF
 const sb=supabase.createClient(URL,KEY),st=document.getElementById('status'),list=document.getElementById('list'),tabs=document.getElementById('tabs');
 let comments=[],view='pending';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function login(){await sb.auth.signInWithOAuth({provider:'github',options:{redirectTo:location.origin+'/admin/comments.html'}})}
+async function login(){
+  st.textContent='Отварам GitHub пријаву…';
+  try{
+    const {data,error}=await sb.auth.signInWithOAuth({
+      provider:'github',
+      options:{redirectTo:location.origin+'/admin/comments.html',skipBrowserRedirect:true}
+    });
+    if(error)throw error;
+    if(!data||!data.url)throw new Error('Supabase није вратио адресу за пријаву.');
+    window.location.assign(data.url);
+  }catch(e){
+    console.error(e);
+    st.textContent='Пријава није покренута: '+(e.message||e);
+  }
+}
 async function logout(){await sb.auth.signOut();location.reload()}
 document.getElementById('login').onclick=login;document.getElementById('logout').onclick=logout;
 tabs.onclick=e=>{if(!e.target.dataset.view)return;view=e.target.dataset.view;[...tabs.children].forEach(b=>{b.className='action '+(b.dataset.view===view?'active':'secondary')});render()};
