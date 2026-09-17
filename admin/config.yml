@@ -23,11 +23,19 @@ collections:
         widget: "select"
         options: ["Izgradnja", "Materijali", "Izmene projekta", "Troškovi", "Galerija"]
       - { label: "Kategorija (EN)", name: "category_en", widget: "string", required: false }
-      - { label: "Naslovna fotografija", name: "image", widget: "image", required: false }
-      - label: "Galerija fotografija"
+      - label: "Fotografije objave"
         name: "gallery"
         widget: "list"
         required: false
-        field: { label: "Fotografija", name: "image", widget: "image" }
+        summary: "Fotografija {{index}}"
+        minimize_collapsed: false
+        field:
+          label: "Fotografija"
+          name: "image"
+          widget: "image"
+          choose_url: false
+          media_library:
+            config:
+              multiple: false
       - { label: "Tekst (SR)", name: "body", widget: "markdown" }
       - { label: "Kratak opis (EN)", name: "summary_en", widget: "text", required: false }
