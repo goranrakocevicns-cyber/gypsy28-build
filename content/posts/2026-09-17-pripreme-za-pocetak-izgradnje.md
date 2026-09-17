@@ -1,11 +1,13 @@
 ---
-title: "Pripreme za početak izgradnje"
-title_en: "Preparing for the Start of Construction"
-date: "2026-09-17T23:20:00+02:00"
-category: "Izgradnja"
-category_en: "Construction"
-image: "/images/uploads/gypsy-build-preparation.jpg"
-summary_en: "The Gypsy 28 Build project is gradually taking its final shape. Preparations, material selection and construction details are now being developed."
+title: Pripreme za početak izgradnje
+title_en: Preparing for the Start of Construction
+date: 2026-09-17T23:20:00+02:00
+category: Izgradnja
+category_en: Construction
+image: /images/uploads/gypsy-build-preparation.jpg
+summary_en: The Gypsy 28 Build project is gradually taking its final shape.
+  Preparations, material selection and construction details are now being
+  developed.
 ---
 Projekat **Gypsy 28 Build** polako dobija svoj konačan oblik. U toku su pripreme, izbor materijala i razrada pojedinih konstruktivnih rešenja. Ovo je druga test objava kojom proveravamo rad dnevnika, fotografija i dvojezičnog prikaza sajta.
 
