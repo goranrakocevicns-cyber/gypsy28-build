@@ -5,6 +5,8 @@ date: 2026-09-17T23:20:00+02:00
 category: Izgradnja
 category_en: Construction
 image: /images/uploads/gypsy-build-preparation.jpg
+gallery:
+  - /images/uploads/11391.jpg
 summary_en: The Gypsy 28 Build project is gradually taking its final shape.
   Preparations, material selection and construction details are now being
   developed.
