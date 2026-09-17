@@ -15,11 +15,19 @@ collections:
     create: true
     slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
     fields:
-      - { label: "Naslov", name: "title", widget: "string" }
+      - { label: "Naslov (SR)", name: "title", widget: "string" }
+      - { label: "Naslov (EN)", name: "title_en", widget: "string", required: false }
       - { label: "Datum", name: "date", widget: "datetime" }
-      - label: "Kategorija"
+      - label: "Kategorija (SR)"
         name: "category"
         widget: "select"
         options: ["Izgradnja", "Materijali", "Izmene projekta", "Troškovi", "Galerija"]
+      - { label: "Kategorija (EN)", name: "category_en", widget: "string", required: false }
       - { label: "Naslovna fotografija", name: "image", widget: "image", required: false }
-      - { label: "Tekst", name: "body", widget: "markdown" }
+      - label: "Galerija fotografija"
+        name: "gallery"
+        widget: "list"
+        required: false
+        field: { label: "Fotografija", name: "image", widget: "image" }
+      - { label: "Tekst (SR)", name: "body", widget: "markdown" }
+      - { label: "Kratak opis (EN)", name: "summary_en", widget: "text", required: false }
