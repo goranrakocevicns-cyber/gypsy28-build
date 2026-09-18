@@ -10,3 +10,13 @@ function renderPosts(){const box=document.getElementById('posts');if(!box||!allP
 async function loadCommentCounts(){try{const r=await fetch(SUPA_URL+'/rest/v1/comments?approved=eq.true&select=post_slug',{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},cache:'no-store'});if(!r.ok)return;const rows=await r.json();commentCounts=rows.reduce((a,c)=>{if(c.post_slug)a[c.post_slug]=(a[c.post_slug]||0)+1;return a},{});renderPosts()}catch(e){console.error(e)}}
 async function loadPosts(){const box=document.getElementById('posts');if(!box)return;try{const r=await fetch('/content/posts/index.json',{cache:'no-store'});if(!r.ok)return;allPosts=await r.json();renderPosts();loadCommentCounts();}catch(e){console.error(e)}}
 setLang(currentLang);loadPosts();
+
+// OneSignal Web Push — loaded dynamically so the existing HTML remains untouched.
+window.OneSignalDeferred=window.OneSignalDeferred||[];
+const oneSignalScript=document.createElement('script');
+oneSignalScript.src='https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+oneSignalScript.defer=true;
+document.head.appendChild(oneSignalScript);
+window.OneSignalDeferred.push(async function(OneSignal){
+  await OneSignal.init({appId:'5eacf8d9-60db-4f36-aaad-fa68997c5094'});
+});
