@@ -38,3 +38,9 @@ window.OneSignalDeferred.push(async function(OneSignal){
   document.body.appendChild(btn);
   refresh();
 });
+
+// Automatic refresh when posts or approved comments change.
+const liveRefreshScript=document.createElement('script');
+liveRefreshScript.src='/live-refresh.js';
+liveRefreshScript.defer=true;
+document.head.appendChild(liveRefreshScript);
