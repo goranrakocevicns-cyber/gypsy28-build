@@ -7,7 +7,6 @@ category_en: Construction
 gallery:
   - /images/uploads/11391.jpg
   - /images/uploads/11254.jpg
-  - /images/uploads/10958.jpg
   - /images/uploads/11217.jpg
 summary_en: The Gypsy 28 Build project is gradually taking its final shape.
   Preparations, material selection and construction details are now being
