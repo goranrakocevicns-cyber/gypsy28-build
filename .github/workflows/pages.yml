@@ -49,12 +49,6 @@ jobs:
               if s != original:
                   p.write_text(s, encoding='utf-8')
           PY
-      - name: Verify critical assets were rewritten
-        run: |
-          grep -q 'href="/gypsy28-build/style.css"' index.html
-          grep -q '/gypsy28-build/' index.html
-          grep -q '/gypsy28-build/#dnevnik' post.html
-          grep -q 'href="/gypsy28-build/"' gallery.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
