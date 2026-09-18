@@ -11,7 +11,7 @@ async function loadCommentCounts(){try{const r=await fetch(SUPA_URL+'/rest/v1/co
 async function loadPosts(){const box=document.getElementById('posts');if(!box)return;try{const r=await fetch('/content/posts/index.json',{cache:'no-store'});if(!r.ok)return;allPosts=await r.json();renderPosts();loadCommentCounts();}catch(e){console.error(e)}}
 setLang(currentLang);loadPosts();
 
-// OneSignal Web Push — loaded dynamically so the existing HTML remains untouched.
+// OneSignal Web Push
 window.OneSignalDeferred=window.OneSignalDeferred||[];
 const oneSignalScript=document.createElement('script');
 oneSignalScript.src='https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
@@ -19,4 +19,22 @@ oneSignalScript.defer=true;
 document.head.appendChild(oneSignalScript);
 window.OneSignalDeferred.push(async function(OneSignal){
   await OneSignal.init({appId:'5eacf8d9-60db-4f36-aaad-fa68997c5094'});
+  const btn=document.createElement('button');
+  btn.type='button';
+  btn.id='push-optin';
+  btn.textContent='🔔 Укључи обавештења';
+  Object.assign(btn.style,{position:'fixed',right:'16px',bottom:'16px',zIndex:'9999',padding:'12px 16px',border:'0',borderRadius:'10px',fontWeight:'700',cursor:'pointer',boxShadow:'0 4px 18px rgba(0,0,0,.22)'});
+  async function refresh(){
+    const perm=Notification.permission;
+    if(perm==='granted') {btn.style.display='none';return;}
+    btn.style.display='block';
+    btn.textContent=perm==='denied'?'🔕 Обавештења су блокирана':'🔔 Укључи обавештења';
+  }
+  btn.addEventListener('click',async()=>{
+    if(Notification.permission==='denied') {alert('Chrome је блокирао обавештења за овај сајт. Отворите подешавања сајта у Chrome-у и дозволите Notifications.');return;}
+    try{await OneSignal.Notifications.requestPermission();}catch(e){console.error(e);}
+    refresh();
+  });
+  document.body.appendChild(btn);
+  refresh();
 });
