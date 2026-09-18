@@ -3,7 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Gypsy 28 — Објаве</title>
+  <link href="config.yml?v=20260918-1935" type="text/yaml" rel="cms-config-url">
 </head>
 <body>
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
@@ -13,8 +17,6 @@
       handler: async ({ entry }) => {
         const slug = entry && (entry.get ? entry.get('slug') : entry.slug);
         if (!slug) return;
-        // GitHub/Decap deletion can take a moment to become visible on raw.githubusercontent.com.
-        // Retry cleanup; the server endpoint refuses to delete comments while the post still exists.
         for (let attempt = 0; attempt < 5; attempt++) {
           if (attempt) await new Promise(r => setTimeout(r, 2000 * attempt));
           try {
