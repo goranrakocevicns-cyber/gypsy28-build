@@ -18,11 +18,6 @@ collections:
       - { label: "Naslov (SR)", name: "title", widget: "string" }
       - { label: "Naslov (EN)", name: "title_en", widget: "string", required: false }
       - { label: "Datum", name: "date", widget: "datetime" }
-      - label: "Kategorija (SR)"
-        name: "category"
-        widget: "select"
-        options: ["Izgradnja", "Materijali", "Izmene projekta", "Troškovi", "Galerija"]
-      - { label: "Kategorija (EN)", name: "category_en", widget: "string", required: false }
       - label: "Fotografije objave"
         name: "gallery"
         widget: "list"
