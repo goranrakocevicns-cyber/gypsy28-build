@@ -3,8 +3,11 @@ backend:
   turbo_site_id: 4b527bfc-e318-46da-adc5-11fda1a5d3f1
   branch: main
 
+site_url: "https://goranrakocevicns-cyber.github.io/gypsy28-build/"
+display_url: "https://goranrakocevicns-cyber.github.io/gypsy28-build/"
+
 media_folder: "images/uploads"
-public_folder: "/images/uploads"
+public_folder: "/gypsy28-build/images/uploads"
 locale: "sr"
 
 collections:
