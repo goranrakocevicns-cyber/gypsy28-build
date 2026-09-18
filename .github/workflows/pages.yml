@@ -43,6 +43,8 @@ jobs:
                   s = s.replace('"/' + root, '"' + base + root)
                   s = s.replace("'/" + root, "'" + base + root)
                   s = s.replace('`/' + root, '`' + base + root)
+              s = s.replace('href="/"', 'href="' + base + '"')
+              s = s.replace("href='/'", "href='" + base + "'")
               s = s.replace('href="/#dnevnik"', 'href="' + base + '#dnevnik"')
               if s != original:
                   p.write_text(s, encoding='utf-8')
@@ -52,6 +54,7 @@ jobs:
           grep -q 'href="/gypsy28-build/style.css"' index.html
           grep -q '/gypsy28-build/' index.html
           grep -q 'href="/gypsy28-build/#dnevnik"' post.html
+          grep -q 'href="/gypsy28-build/"' gallery.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
