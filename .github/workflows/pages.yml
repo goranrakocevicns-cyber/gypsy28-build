@@ -53,7 +53,7 @@ jobs:
         run: |
           grep -q 'href="/gypsy28-build/style.css"' index.html
           grep -q '/gypsy28-build/' index.html
-          grep -q 'href="/gypsy28-build/#dnevnik"' post.html
+          grep -q '/gypsy28-build/#dnevnik' post.html
           grep -q 'href="/gypsy28-build/"' gallery.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
