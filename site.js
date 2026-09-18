@@ -4,29 +4,17 @@ let currentLang=localStorage.getItem('gypsy-lang')||'en';
 let allPosts=[];
 let commentCounts={};
 const SITE_BASE='/gypsy28-build/';
+const POST_VERSION='20260918-1855';
 function localUrl(path=''){const s=String(path);if(/^https?:\/\//i.test(s))return s;if(s.startsWith(SITE_BASE))return s;return SITE_BASE+s.replace(/^\//,'');}
 function setLang(lang){currentLang=lang;localStorage.setItem('gypsy-lang',lang);document.documentElement.lang=lang;document.querySelectorAll('[data-sr][data-en]').forEach(el=>{el.textContent=el.dataset[lang]||el.dataset.sr});document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));document.title=lang==='en'?'Gypsy 28 Catamaran — Build Journal':'Gypsy 28 Катамаран — Дневник изградње';renderPosts();}
 document.querySelectorAll('.lang-switch button').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
 function mediaUrl(src=''){return src?localUrl(src):'';}
 function collage(p,url,title){const imgs=[p.image,...(Array.isArray(p.gallery)?p.gallery:[])].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);if(!imgs.length)return '';const shown=imgs.slice(0,3);const cls=`post-collage count-${shown.length}`;return `<a class="${cls}" href="${url}" aria-label="${esc(title)}">${shown.map((src,i)=>`<span class="collage-photo"><img src="${esc(mediaUrl(src))}" alt="${esc(title)}" loading="lazy">${i===2&&imgs.length>3?`<b class="more-photos">+${imgs.length-3}</b>`:''}</span>`).join('')}</a>`;}
-function renderPosts(){const box=document.getElementById('posts');if(!box)return;if(!allPosts.length){box.innerHTML='';return;}box.innerHTML=allPosts.map(p=>{const en=currentLang==='en',title=en?(p.title_en||p.title):p.title,summary=en?(p.summary_en||p.summary):p.summary,url=SITE_BASE+'post.html?post='+encodeURIComponent(p.slug),n=commentCounts[p.slug]||0,comments=n?` <span class="comment-count">· ${en?'Comments':'Коментари'} (${n})</span>`:'';return `<article class="card post-card">${collage(p,url,title)}<span>${en?'JOURNAL':'DNEVNIK'}</span><h3><a href="${url}">${esc(title)}</a></h3><p>${esc(summary||'')}</p><div class="post-links"><a class="read-more" href="${url}">${en?'Read more →':'Прочитај више →'}</a>${comments}</div></article>`}).join('');}
+function renderPosts(){const box=document.getElementById('posts');if(!box)return;if(!allPosts.length){box.innerHTML='';return;}box.innerHTML=allPosts.map(p=>{const en=currentLang==='en',title=en?(p.title_en||p.title):p.title,summary=en?(p.summary_en||p.summary):p.summary,url=SITE_BASE+'post.html?post='+encodeURIComponent(p.slug)+'&v='+POST_VERSION,n=commentCounts[p.slug]||0,comments=n?` <span class="comment-count">· ${en?'Comments':'Коментари'} (${n})</span>`:'';return `<article class="card post-card">${collage(p,url,title)}<span>${en?'JOURNAL':'DNEVNIK'}</span><h3><a href="${url}">${esc(title)}</a></h3><p>${esc(summary||'')}</p><div class="post-links"><a class="read-more" href="${url}">${en?'Read more →':'Прочитај више →'}</a>${comments}</div></article>`}).join('');}
 async function loadCommentCounts(){try{const r=await fetch(SUPA_URL+'/rest/v1/comments?approved=eq.true&select=post_slug',{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY},cache:'no-store'});if(!r.ok)return;const rows=await r.json();commentCounts=rows.reduce((a,c)=>{if(c.post_slug)a[c.post_slug]=(a[c.post_slug]||0)+1;return a},{});renderPosts()}catch(e){console.error(e)}}
 async function loadPosts(){const box=document.getElementById('posts');if(!box)return;try{const r=await fetch(SITE_BASE+'content/posts/index.json?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('Posts HTTP '+r.status);allPosts=await r.json();renderPosts();loadCommentCounts();}catch(e){console.error(e)}}
 setLang(currentLang);loadPosts();
-
-// OneSignal Web Push
 window.OneSignalDeferred=window.OneSignalDeferred||[];
-const oneSignalScript=document.createElement('script');
-oneSignalScript.src='https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
-oneSignalScript.defer=true;
-document.head.appendChild(oneSignalScript);
-window.OneSignalDeferred.push(async function(OneSignal){
-  await OneSignal.init({appId:'5eacf8d9-60db-4f36-aaad-fa68997c5094'});
-  const btn=document.createElement('button');
-  btn.type='button';btn.id='push-optin';btn.textContent='🔔 Укључи обавештења';
-  Object.assign(btn.style,{position:'fixed',right:'16px',bottom:'16px',zIndex:'9999',padding:'12px 16px',border:'0',borderRadius:'10px',fontWeight:'700',cursor:'pointer',boxShadow:'0 4px 18px rgba(0,0,0,.22)'});
-  async function refresh(){const perm=Notification.permission;if(perm==='granted'){btn.style.display='none';return;}btn.style.display='block';btn.textContent=perm==='denied'?'🔕 Обавештења су блокирана':'🔔 Укључи обавештења';}
-  btn.addEventListener('click',async()=>{if(Notification.permission==='denied'){alert('Chrome је блокирао обавештења за овај сајт. Отворите подешавања сајта у Chrome-у и дозволите Notifications.');return;}try{await OneSignal.Notifications.requestPermission();}catch(e){console.error(e);}refresh();});
-  document.body.appendChild(btn);refresh();
-});
+const oneSignalScript=document.createElement('script');oneSignalScript.src='https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';oneSignalScript.defer=true;document.head.appendChild(oneSignalScript);
+window.OneSignalDeferred.push(async function(OneSignal){await OneSignal.init({appId:'5eacf8d9-60db-4f36-aaad-fa68997c5094'});const btn=document.createElement('button');btn.type='button';btn.id='push-optin';btn.textContent='🔔 Укључи обавештења';Object.assign(btn.style,{position:'fixed',right:'16px',bottom:'16px',zIndex:'9999',padding:'12px 16px',border:'0',borderRadius:'10px',fontWeight:'700',cursor:'pointer',boxShadow:'0 4px 18px rgba(0,0,0,.22)'});async function refresh(){const perm=Notification.permission;if(perm==='granted'){btn.style.display='none';return;}btn.style.display='block';btn.textContent=perm==='denied'?'🔕 Обавештења су блокирана':'🔔 Укључи обавештења';}btn.addEventListener('click',async()=>{if(Notification.permission==='denied'){alert('Chrome је блокирао обавештења за овај сајт. Отворите подешавања сајта у Chrome-у и дозволите Notifications.');return;}try{await OneSignal.Notifications.requestPermission();}catch(e){console.error(e);}refresh();});document.body.appendChild(btn);refresh();});
 const liveRefreshScript=document.createElement('script');liveRefreshScript.src=SITE_BASE+'live-refresh.js';liveRefreshScript.defer=true;document.head.appendChild(liveRefreshScript);
