@@ -23,12 +23,12 @@ jobs:
         with:
           node-version: 20
       - run: npm run build
-      - name: Make site work under GitHub Pages project path
+      - name: Fix local paths for GitHub Pages
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re
           base = '/gypsy28-build/'
+          local_roots = ['style.css','site.js','live-refresh.js','gallery.html','post.html','admin/','content/','images/','.netlify/','api/']
           for p in Path('.').rglob('*'):
               if not p.is_file() or p.suffix.lower() not in {'.html','.js','.css','.json'}:
                   continue
@@ -38,11 +38,18 @@ jobs:
                   s = p.read_text(encoding='utf-8')
               except UnicodeDecodeError:
                   continue
-              # Rewrite only local root-relative URLs; protocol-relative // and external URLs are untouched.
-              s2 = re.sub(r'(?P<prefix>["\'`(=:\s])/(?!/|gypsy28-build/)(?P<path>(?:style\.css|site\.js|live-refresh\.js|gallery\.html|post\.html|admin/|content/|images/|\.netlify/|api/)[^"\'`)\s<]*)', lambda m: m.group('prefix') + base + m.group('path'), s)
-              if s2 != s:
-                  p.write_text(s2, encoding='utf-8')
+              original = s
+              for root in local_roots:
+                  s = s.replace('"/' + root, '"' + base + root)
+                  s = s.replace("'/" + root, "'" + base + root)
+                  s = s.replace('`/' + root, '`' + base + root)
+              if s != original:
+                  p.write_text(s, encoding='utf-8')
           PY
+      - name: Verify critical assets were rewritten
+        run: |
+          grep -q 'href="/gypsy28-build/style.css"' index.html
+          grep -q '/gypsy28-build/' index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
