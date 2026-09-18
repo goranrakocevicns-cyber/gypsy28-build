@@ -1,6 +1,6 @@
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 const SUPA_URL='https://kfpdzqwtninhdkwtjruc.supabase.co',SUPA_KEY='sb_publishable_a-kAHWFg9Kv3GFVGvxIjTg_c6QlqZbB';
-let currentLang=localStorage.getItem('gypsy-lang')||'sr';
+let currentLang=localStorage.getItem('gypsy-lang')||'en';
 let allPosts=[];
 let commentCounts={};
 function setLang(lang){currentLang=lang;localStorage.setItem('gypsy-lang',lang);document.documentElement.lang=lang;document.querySelectorAll('[data-sr][data-en]').forEach(el=>{el.textContent=el.dataset[lang]||el.dataset.sr});document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));document.title=lang==='en'?'Gypsy 28 Catamaran — Build Journal':'Gypsy 28 Катамаран — Дневник изградње';renderPosts();}
