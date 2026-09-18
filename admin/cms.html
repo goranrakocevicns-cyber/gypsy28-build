@@ -7,5 +7,28 @@
 </head>
 <body>
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+  <script>
+    CMS.registerEventListener({
+      name: 'postDelete',
+      handler: async ({ entry }) => {
+        const slug = entry && (entry.get ? entry.get('slug') : entry.slug);
+        if (!slug) return;
+        // GitHub/Decap deletion can take a moment to become visible on raw.githubusercontent.com.
+        // Retry cleanup; the server endpoint refuses to delete comments while the post still exists.
+        for (let attempt = 0; attempt < 5; attempt++) {
+          if (attempt) await new Promise(r => setTimeout(r, 2000 * attempt));
+          try {
+            const res = await fetch('https://kfpdzqwtninhdkwtjruc.supabase.co/functions/v1/cleanup-deleted-post-comments', {
+              method: 'POST',
+              headers: {'Content-Type':'application/json'},
+              body: JSON.stringify({slug})
+            });
+            if (res.ok) return;
+            if (res.status !== 409 && res.status !== 503) return;
+          } catch (_) {}
+        }
+      }
+    });
+  </script>
 </body>
 </html>
