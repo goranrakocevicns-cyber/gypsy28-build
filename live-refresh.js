@@ -1,4 +1,6 @@
 (()=>{
+  const back=document.getElementById('back');
+  if(back) back.href='/gypsy28-build/#dnevnik';
   const SUPA_URL='https://kfpdzqwtninhdkwtjruc.supabase.co';
   const SUPA_KEY='sb_publishable_a-kAHWFg9Kv3GFVGvxIjTg_c6QlqZbB';
   const slug=new URLSearchParams(location.search).get('post');
