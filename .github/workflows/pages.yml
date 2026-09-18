@@ -1,0 +1,59 @@
+name: Deploy Gypsy 28 to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm run build
+      - name: Make site work under GitHub Pages project path
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          base = '/gypsy28-build/'
+          for p in Path('.').rglob('*'):
+              if not p.is_file() or p.suffix.lower() not in {'.html','.js','.css','.json'}:
+                  continue
+              if '.git' in p.parts or '.github' in p.parts or 'node_modules' in p.parts:
+                  continue
+              try:
+                  s = p.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  continue
+              # Rewrite only local root-relative URLs; protocol-relative // and external URLs are untouched.
+              s2 = re.sub(r'(?P<prefix>["\'`(=:\s])/(?!/|gypsy28-build/)(?P<path>(?:style\.css|site\.js|live-refresh\.js|gallery\.html|post\.html|admin/|content/|images/|\.netlify/|api/)[^"\'`)\s<]*)', lambda m: m.group('prefix') + base + m.group('path'), s)
+              if s2 != s:
+                  p.write_text(s2, encoding='utf-8')
+          PY
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
