@@ -1,6 +1,6 @@
 backend:
-  name: github
-  repo: goranrakocevicns-cyber/gypsy28-build
+  name: turbo-github
+  turbo_site_id: 4b527bfc-e318-46da-adc5-11fda1a5d3f1
   branch: main
 
 media_folder: "images/uploads"
