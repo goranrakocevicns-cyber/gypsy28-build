@@ -1,39 +1,9 @@
 <!doctype html>
-<html lang="sr">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gypsy 28 Build</title>
-<link rel="stylesheet" href="./style.css">
-<style>
-.post-page{max-width:960px;margin:0 auto;padding:32px 20px 70px}.post-page img{max-width:100%;height:auto;border-radius:10px}.post-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:24px 0}.post-body{white-space:pre-wrap;line-height:1.7}.post-page h1{margin-top:24px}
-</style>
-</head>
-<body>
-<main class="post-page">
-<a href="./#dnevnik" id="back">← Назад на дневник</a>
-<article id="post">Учитавање…</article>
-</main>
+<html lang="sr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gypsy 28 Build</title><link rel="stylesheet" href="/gypsy28-build/style.css"><style>.post-page{max-width:960px;margin:0 auto;padding:32px 20px 70px}.post-page img{max-width:100%;height:auto;border-radius:10px}.post-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:24px 0}.post-body{white-space:pre-wrap;line-height:1.7}.post-page h1{margin-top:24px}</style></head>
+<body><main class="post-page"><a href="/gypsy28-build/#dnevnik" id="back">← Назад на дневник</a><article id="post">Учитавање…</article></main>
 <script>
-const BASE=location.pathname.includes('/gypsy28-build/')?'/gypsy28-build/':'/';
+const BASE='/gypsy28-build/';
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const media=src=>!src?'':(/^https?:\/\//i.test(src)?src:BASE+String(src).replace(/^\//,''));
-(async()=>{
- const slug=new URLSearchParams(location.search).get('post');
- const box=document.getElementById('post');
- if(!slug){box.innerHTML='<p>Објава није пронађена.</p>';return;}
- try{
-  const r=await fetch(BASE+'content/posts/index.json?v='+Date.now(),{cache:'no-store'});
-  if(!r.ok)throw new Error('HTTP '+r.status);
-  const posts=await r.json();
-  const p=posts.find(x=>x.slug===slug);
-  if(!p){box.innerHTML='<p>Објава није пронађена.</p>';return;}
-  document.title=(p.title||'Објава')+' — Gypsy 28';
-  const imgs=[p.image,...(Array.isArray(p.gallery)?p.gallery:[])].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);
-  const gallery=imgs.length?'<div class="post-gallery">'+imgs.map(src=>'<img src="'+esc(media(src))+'" alt="'+esc(p.title)+'">').join('')+'</div>':'';
-  box.innerHTML='<h1>'+esc(p.title)+'</h1>'+gallery+'<div class="post-body">'+esc(p.body||'')+'</div>';
- }catch(e){console.error(e);box.innerHTML='<p>Грешка при учитавању објаве.</p>';}
-})();
-</script>
-</body>
-</html>
+const media=src=>{if(!src)return '';const s=String(src);if(/^https?:\/\//i.test(s))return s;if(s.startsWith(BASE))return s;return BASE+s.replace(/^\//,'');};
+(async()=>{const slug=new URLSearchParams(location.search).get('post');const box=document.getElementById('post');if(!slug){box.innerHTML='<p>Објава није пронађена.</p>';return;}try{const r=await fetch(BASE+'content/posts/index.json?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const posts=await r.json();const p=posts.find(x=>x.slug===slug);if(!p){box.innerHTML='<p>Објава није пронађена.</p>';return;}document.title=(p.title||'Објава')+' — Gypsy 28';const imgs=[p.image,...(Array.isArray(p.gallery)?p.gallery:[])].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);const gallery=imgs.length?'<div class="post-gallery">'+imgs.map(src=>'<img src="'+esc(media(src))+'" alt="'+esc(p.title)+'">').join('')+'</div>':'';box.innerHTML='<h1>'+esc(p.title)+'</h1>'+gallery+'<div class="post-body">'+esc(p.body||'')+'</div>';}catch(e){console.error(e);box.innerHTML='<p>Грешка при учитавању објаве.</p>';}})();
+</script></body></html>
