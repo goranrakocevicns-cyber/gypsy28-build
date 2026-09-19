@@ -23,27 +23,36 @@ jobs:
         with:
           node-version: 20
       - run: npm run build
-      - name: Prepare GitHub Pages paths and Supabase content adapter
+      - name: Prepare GitHub Pages paths and force fresh live content
+        env:
+          BUILD_SHA: ${{ github.sha }}
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          base = '/gypsy28-build/'
-          local_roots = ['style.css','site.js','live-refresh.js','supabase-content-loader.js','gallery.html','post.html','admin/','content/','images/','.netlify/','api/']
+          import os,re
+          base='/gypsy28-build/'
+          ver=os.environ.get('BUILD_SHA','live')[:12]
+          local_roots=['style.css','site.js','live-refresh.js','supabase-content-loader.js','gallery.html','post.html','admin/','content/','images/','.netlify/','api/']
           for p in Path('.').rglob('*'):
               if not p.is_file() or p.suffix.lower() not in {'.html','.js','.css','.json'}: continue
               if '.git' in p.parts or '.github' in p.parts or 'node_modules' in p.parts: continue
-              try: s=p.read_text(encoding='utf-8')
-              except UnicodeDecodeError: continue
+              try:s=p.read_text(encoding='utf-8')
+              except UnicodeDecodeError:continue
               original=s
               for root in local_roots:
                   s=s.replace('"/'+root,'"'+base+root).replace("'/"+root,"'"+base+root).replace('`/'+root,'`'+base+root)
               s=s.replace('href="/"','href="'+base+'"').replace("href='/'","href='"+base+"'")
               s=s.replace('href="/#dnevnik"','href="'+base+'#dnevnik"')
               if p.name in {'post.html','gallery.html'} and 'supabase-content-loader.js' not in s:
-                  s=s.replace('<script>','<script src="'+base+'supabase-content-loader.js"></script><script>',1)
-              if p.as_posix() == 'admin/cms.html' and 'multi-photo-fix.js' not in s:
-                  s=s.replace('</body>','<script src="'+base+'admin/multi-photo-fix.js?v=2"></script></body>')
-              if s!=original: p.write_text(s,encoding='utf-8')
+                  s=s.replace('<script>','<script src="'+base+'supabase-content-loader.js?v='+ver+'"></script><script>',1)
+              if p.as_posix()=='admin/cms.html' and 'multi-photo-fix.js' not in s:
+                  s=s.replace('</body>','<script src="'+base+'admin/multi-photo-fix.js?v='+ver+'"></script></body>')
+              if p.name=='index.html':
+                  s=re.sub(r'(/gypsy28-build/site\.js)(?:\?v=[^"\']*)?',r'\1?v='+ver,s)
+                  s=re.sub(r'(/gypsy28-build/style\.css)(?:\?v=[^"\']*)?',r'\1?v='+ver,s)
+              if p.name=='site.js':
+                  s=re.sub(r"POST_VERSION='[^']*'","POST_VERSION='"+ver+"'",s)
+              if s!=original:p.write_text(s,encoding='utf-8')
           PY
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
