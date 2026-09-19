@@ -1,38 +1,16 @@
 [
   {
-    "slug": "2026-09-18-test-1",
-    "date": "2026-09-18",
-    "category": null,
-    "category_en": null,
-    "title": "TEST",
-    "title_en": null,
-    "summary": "fsgfsfdsfgrrrrthtrhtrht",
-    "summary_en": null,
-    "body": "TESTIRAM RAD OBJAVA DRUGI PUT",
-    "body_en": null,
-    "image": "https://goranrakocevicns-cyber.github.io/gypsy28-build/images/uploads/9971.jpg",
-    "gallery": [
-      "https://goranrakocevicns-cyber.github.io/gypsy28-build/images/uploads/9971.jpg",
-      "https://goranrakocevicns-cyber.github.io/gypsy28-build/images/uploads/30-series-lines-plan-sh.1.png",
-      "https://goranrakocevicns-cyber.github.io/gypsy28-build/images/uploads/eclipse_sailing2.jpg",
-      "https://goranrakocevicns-cyber.github.io/gypsy28-build/images/uploads/transom.jpg",
-      "https://kfpdzqwtninhdkwtjruc.supabase.co/storage/v1/object/public/gypsy28-images/2/1789822757494-0-58wx99hh38w.webp",
-      "https://kfpdzqwtninhdkwtjruc.supabase.co/storage/v1/object/public/gypsy28-images/2/1789822758125-1-xh51ipwjmop.webp",
-      "https://kfpdzqwtninhdkwtjruc.supabase.co/storage/v1/object/public/gypsy28-images/2/1789822758658-2-7et0fm79te5.webp"
-    ]
-  },
-  {
     "slug": "2026-09-18-od-ideje-do-katamarana",
-    "date": "2026-09-18",
-    "category": "Дневник градње",
-    "category_en": "Build journal",
     "title": "Од идеје до катамарана",
     "title_en": "From an Idea to a Catamaran",
-    "summary": "Свака градња почиње много пре првог реза шперплоче. Почиње идејом, избором пројекта и одлукама које ће касније одредити цео брод.",
-    "summary_en": "Every build begins long before the first sheet of plywood is cut — with an idea, the choice of design and the decisions that will later shape the entire boat.",
+    "date": "2026-09-18T10:15:00+00:00",
+    "category": "Дневник градње",
+    "category_en": "Build journal",
+    "image": "",
+    "gallery": [],
     "body": "Свака градња почиње много пре првог реза шперплоче. Почиње идејом, избором пројекта и одлукама које ће касније одредити цео брод.\\n\\nЗа основу нашег катамарана изабран је Richard Woods Gypsy 28. Овај дневник пратиће цео пут — од планова и припреме материјала, преко изградње трупова и надграђа, до опремања и првог поринућа.\\n\\nНа почетку, основни изглед Gypsy 28 и распоред представљају полазну тачку нашег пројекта.",
-    "body_en": "Every build begins long before the first sheet of plywood is cut. It begins with an idea, the choice of design and the decisions that will later shape the entire boat.",
-    "image": "https://goranrakocevicns-cyber.github.io/gypsy28-build/images/uploads/9971.jpg",
-    "gallery": ["https://goranrakocevicns-cyber.github.io/gypsy28-build/images/uploads/9971.jpg"]
+    "body_en": "Every build begins long before the first sheet of plywood is cut. It begins with an idea, the choice of design and the decisions that will later shape the entire boat.\\n\\nWe chose the Richard Woods Gypsy 28 as the basis for our catamaran. This journal will follow the entire journey — from the plans and preparation of materials, through construction of the hulls and superstructure, to fitting out and the first launch.\\n\\nAt the beginning, the basic Gypsy 28 profile and layout form the starting point for our project.",
+    "summary": "Свака градња почиње много пре првог реза шперплоче. Почиње идејом, избором пројекта и одлукама које ће касније одредити цео брод.",
+    "summary_en": "Every build begins long before the first sheet of plywood is cut — with an idea, the choice of design and the decisions that will later shape the entire boat."
   }
 ]
