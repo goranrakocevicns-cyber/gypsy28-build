@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Backup Gypsy 28 content"]
+    types: [completed]
 
 permissions:
   contents: read
@@ -16,16 +19,19 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: npm run build
       - name: Prepare GitHub Pages paths and force fresh live content
         env:
-          BUILD_SHA: ${{ github.sha }}
+          BUILD_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -43,7 +49,6 @@ jobs:
                   s=s.replace('"/'+root,'"'+base+root).replace("'/"+root,"'"+base+root).replace('`/'+root,'`'+base+root)
               s=s.replace('href="/"','href="'+base+'"').replace("href='/'","href='"+base+"'")
               s=s.replace('href="/#dnevnik"','href="'+base+'#dnevnik"')
-              # New Supabase publishable keys belong in apikey; do not send them as a Bearer JWT.
               s=s.replace(",Authorization:'Bearer '+SUPA_KEY","")
               s=s.replace(',Authorization:`Bearer ${SUPA_KEY}`','')
               if p.as_posix()=='admin/cms.html' and 'multi-photo-fix.js' not in s:
