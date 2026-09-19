@@ -2,6 +2,8 @@ name: Backup Gypsy 28 content
 
 on:
   workflow_dispatch:
+  push:
+    paths: ['.github/workflows/backup-gypsy.yml']
   schedule:
     - cron: '27 2 * * *'
 
@@ -16,7 +18,7 @@ jobs:
       - name: Backup published Supabase content and images
         run: |
           python3 - <<'PY'
-          import json, urllib.request, pathlib, os
+          import json, urllib.request, pathlib
           U='https://kfpdzqwtninhdkwtjruc.supabase.co'
           K='sb_publishable_a-kAHWFg9Kv3GFVGvxIjTg_c6QlqZbB'
           H={'apikey':K,'Authorization':'Bearer '+K}
@@ -35,13 +37,11 @@ jobs:
                   url=x.get('public_url') or (U+'/storage/v1/object/public/gypsy28-images/'+x['storage_path'])
                   if x.get('storage_path'):
                       name=str(p['id'])+'-'+pathlib.Path(x['storage_path']).name
-                      dest=root/name
                       try:
-                          urllib.request.urlretrieve(url,dest)
-                          url='/gypsy28-build/backup-images/'+name
+                          urllib.request.urlretrieve(url,root/name); url='/gypsy28-build/backup-images/'+name
                       except Exception as e: print('image backup warning',e)
                   gallery.append(url)
-              out.append({'slug':p['slug'],'title':p['title'],'title_en':p.get('title_en'),'date':p['published_at'],'category':p.get('category'),'category_en':p.get('category_en'),'image':p.get('cover_url') or '', 'gallery':gallery,'body':p.get('body') or '','body_en':p.get('body_en') or '','summary':p.get('summary') or '','summary_en':p.get('summary_en') or ''})
+              out.append({'slug':p['slug'],'title':p['title'],'title_en':p.get('title_en'),'date':p['published_at'],'category':p.get('category'),'category_en':p.get('category_en'),'image':p.get('cover_url') or '','gallery':gallery,'body':p.get('body') or '','body_en':p.get('body_en') or '','summary':p.get('summary') or '','summary_en':p.get('summary_en') or ''})
           pathlib.Path('content/posts/index.json').write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding='utf-8')
           PY
       - name: Save backup in repository
