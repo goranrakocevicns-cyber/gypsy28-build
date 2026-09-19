@@ -23,31 +23,25 @@ jobs:
         with:
           node-version: 20
       - run: npm run build
-      - name: Fix local paths for GitHub Pages
+      - name: Prepare GitHub Pages paths and Supabase content adapter
         run: |
           python3 - <<'PY'
           from pathlib import Path
           base = '/gypsy28-build/'
-          local_roots = ['style.css','site.js','live-refresh.js','gallery.html','post.html','admin/','content/','images/','.netlify/','api/']
+          local_roots = ['style.css','site.js','live-refresh.js','supabase-content-loader.js','gallery.html','post.html','admin/','content/','images/','.netlify/','api/']
           for p in Path('.').rglob('*'):
-              if not p.is_file() or p.suffix.lower() not in {'.html','.js','.css','.json'}:
-                  continue
-              if '.git' in p.parts or '.github' in p.parts or 'node_modules' in p.parts:
-                  continue
-              try:
-                  s = p.read_text(encoding='utf-8')
-              except UnicodeDecodeError:
-                  continue
-              original = s
+              if not p.is_file() or p.suffix.lower() not in {'.html','.js','.css','.json'}: continue
+              if '.git' in p.parts or '.github' in p.parts or 'node_modules' in p.parts: continue
+              try: s=p.read_text(encoding='utf-8')
+              except UnicodeDecodeError: continue
+              original=s
               for root in local_roots:
-                  s = s.replace('"/' + root, '"' + base + root)
-                  s = s.replace("'/" + root, "'" + base + root)
-                  s = s.replace('`/' + root, '`' + base + root)
-              s = s.replace('href="/"', 'href="' + base + '"')
-              s = s.replace("href='/'", "href='" + base + "'")
-              s = s.replace('href="/#dnevnik"', 'href="' + base + '#dnevnik"')
-              if s != original:
-                  p.write_text(s, encoding='utf-8')
+                  s=s.replace('"/'+root,'"'+base+root).replace("'/"+root,"'"+base+root).replace('`/'+root,'`'+base+root)
+              s=s.replace('href="/"','href="'+base+'"').replace("href='/'","href='"+base+"'")
+              s=s.replace('href="/#dnevnik"','href="'+base+'#dnevnik"')
+              if p.name in {'post.html','gallery.html'} and 'supabase-content-loader.js' not in s:
+                  s=s.replace('<script>','<script src="'+base+'supabase-content-loader.js"></script><script>',1)
+              if s!=original: p.write_text(s,encoding='utf-8')
           PY
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
