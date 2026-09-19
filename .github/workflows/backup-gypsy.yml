@@ -1,0 +1,54 @@
+name: Backup Gypsy 28 content
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '27 2 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Backup published Supabase content and images
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, pathlib, os
+          U='https://kfpdzqwtninhdkwtjruc.supabase.co'
+          K='sb_publishable_a-kAHWFg9Kv3GFVGvxIjTg_c6QlqZbB'
+          H={'apikey':K,'Authorization':'Bearer '+K}
+          def get(path):
+              r=urllib.request.Request(U+'/rest/v1/'+path,headers=H)
+              return json.load(urllib.request.urlopen(r,timeout=30))
+          posts=get('posts?published=eq.true&select=*&order=published_at.desc')
+          photos=get('post_photos?select=post_id,public_url,storage_path,sort_order&order=sort_order.asc')
+          by={}
+          for x in photos: by.setdefault(x['post_id'],[]).append(x)
+          root=pathlib.Path('backup-images'); root.mkdir(exist_ok=True)
+          out=[]
+          for p in posts:
+              gallery=[]
+              for x in by.get(p['id'],[]):
+                  url=x.get('public_url') or (U+'/storage/v1/object/public/gypsy28-images/'+x['storage_path'])
+                  if x.get('storage_path'):
+                      name=str(p['id'])+'-'+pathlib.Path(x['storage_path']).name
+                      dest=root/name
+                      try:
+                          urllib.request.urlretrieve(url,dest)
+                          url='/gypsy28-build/backup-images/'+name
+                      except Exception as e: print('image backup warning',e)
+                  gallery.append(url)
+              out.append({'slug':p['slug'],'title':p['title'],'title_en':p.get('title_en'),'date':p['published_at'],'category':p.get('category'),'category_en':p.get('category_en'),'image':p.get('cover_url') or '', 'gallery':gallery,'body':p.get('body') or '','body_en':p.get('body_en') or '','summary':p.get('summary') or '','summary_en':p.get('summary_en') or ''})
+          pathlib.Path('content/posts/index.json').write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding='utf-8')
+          PY
+      - name: Save backup in repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add content/posts/index.json backup-images/
+          git diff --cached --quiet && exit 0
+          git commit -m "Automatic Gypsy 28 content backup"
+          git push
