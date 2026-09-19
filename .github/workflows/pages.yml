@@ -32,7 +32,7 @@ jobs:
           import os,re
           base='/gypsy28-build/'
           ver=os.environ.get('BUILD_SHA','live')[:12]
-          local_roots=['style.css','site.js','live-refresh.js','supabase-content-loader.js','gallery.html','post.html','admin/','content/','images/','.netlify/','api/']
+          local_roots=['style.css','site.js','live-refresh.js','gallery.html','post.html','admin/','content/','images/','.netlify/','api/']
           for p in Path('.').rglob('*'):
               if not p.is_file() or p.suffix.lower() not in {'.html','.js','.css','.json'}: continue
               if '.git' in p.parts or '.github' in p.parts or 'node_modules' in p.parts: continue
@@ -43,8 +43,9 @@ jobs:
                   s=s.replace('"/'+root,'"'+base+root).replace("'/"+root,"'"+base+root).replace('`/'+root,'`'+base+root)
               s=s.replace('href="/"','href="'+base+'"').replace("href='/'","href='"+base+"'")
               s=s.replace('href="/#dnevnik"','href="'+base+'#dnevnik"')
-              if p.name in {'post.html','gallery.html'} and 'supabase-content-loader.js' not in s:
-                  s=s.replace('<script>','<script src="'+base+'supabase-content-loader.js?v='+ver+'"></script><script>',1)
+              # New Supabase publishable keys belong in apikey; do not send them as a Bearer JWT.
+              s=s.replace(",Authorization:'Bearer '+SUPA_KEY","")
+              s=s.replace(',Authorization:`Bearer ${SUPA_KEY}`','')
               if p.as_posix()=='admin/cms.html' and 'multi-photo-fix.js' not in s:
                   s=s.replace('</body>','<script src="'+base+'admin/multi-photo-fix.js?v='+ver+'"></script></body>')
               if p.name=='index.html':
