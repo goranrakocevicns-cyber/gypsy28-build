@@ -28,7 +28,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Preserve live Supabase backup
+        run: |
+          cp content/posts/index.json /tmp/gypsy-live-index.json
+          cp fallback-data.js /tmp/gypsy-live-fallback-data.js
       - run: npm run build
+      - name: Restore live Supabase backup after legacy Markdown build
+        run: |
+          cp /tmp/gypsy-live-index.json content/posts/index.json
+          cp /tmp/gypsy-live-fallback-data.js fallback-data.js
       - name: Prepare GitHub Pages paths and force fresh live content
         env:
           BUILD_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
