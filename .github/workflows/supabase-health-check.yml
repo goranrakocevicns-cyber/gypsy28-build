@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Check Supabase and 3 random photos
+      - name: Check Supabase and up to 3 random photos
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
@@ -46,9 +46,13 @@ jobs:
           photos = get_json(
               BASE + '/rest/v1/post_photos?select=post_id,public_url,storage_path&limit=1000'
           )
-          if not photos:
-              raise RuntimeError('Supabase is reachable, but post_photos returned no photos')
 
+          # Zero photos is not an error: Supabase was still successfully read.
+          if not photos:
+              print('Supabase OK; there are currently no photos to check.')
+              raise SystemExit(0)
+
+          # If there are 1-2 photos, check all of them. If there are 3+, choose 3 randomly.
           sample = random.sample(photos, min(3, len(photos)))
           failures = []
 
