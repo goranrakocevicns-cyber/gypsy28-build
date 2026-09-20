@@ -1,0 +1,86 @@
+name: Gypsy 28 Supabase health check
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub Actions cron uses UTC. These are 08, 11, 14, 17 and 20 UTC.
+    - cron: '0 8,11,14,17,20 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check Supabase and 3 random photos
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import random
+          import urllib.request
+
+          BASE = 'https://kfpdzqwtninhdkwtjruc.supabase.co'
+          KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY', '').strip()
+          if not KEY:
+              raise SystemExit('Missing SUPABASE_SERVICE_ROLE_KEY repository secret')
+
+          HEADERS = {
+              'apikey': KEY,
+              'Authorization': 'Bearer ' + KEY,
+              'User-Agent': 'Gypsy28-Supabase-Health-Check/1.0',
+          }
+
+          def get_json(url):
+              req = urllib.request.Request(url, headers=HEADERS)
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  if response.status != 200:
+                      raise RuntimeError(f'HTTP {response.status}: {url}')
+                  return json.load(response)
+
+          # Real database read: verifies that Supabase REST responds.
+          photos = get_json(
+              BASE + '/rest/v1/post_photos?select=post_id,public_url,storage_path&limit=1000'
+          )
+          if not photos:
+              raise RuntimeError('Supabase is reachable, but post_photos returned no photos')
+
+          sample = random.sample(photos, min(3, len(photos)))
+          failures = []
+
+          for photo in sample:
+              url = photo.get('public_url')
+              storage_path = photo.get('storage_path')
+              if not url and storage_path:
+                  url = BASE + '/storage/v1/object/public/gypsy28-images/' + storage_path
+              if not url:
+                  failures.append('Photo record has neither public_url nor storage_path')
+                  continue
+
+              try:
+                  req = urllib.request.Request(url, headers=HEADERS)
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      content_type = (response.headers.get('Content-Type') or '').lower()
+                      first_bytes = response.read(64)
+                      if response.status != 200:
+                          raise RuntimeError(f'HTTP {response.status}')
+                      if not first_bytes:
+                          raise RuntimeError('empty response')
+                      if content_type and not content_type.startswith('image/'):
+                          raise RuntimeError(f'unexpected Content-Type {content_type}')
+                  print('OK:', storage_path or url)
+              except Exception as exc:
+                  failures.append(f'{storage_path or url}: {exc}')
+
+          if failures:
+              print('\nFAILED PHOTO CHECKS:')
+              for failure in failures:
+                  print('-', failure)
+              raise SystemExit(1)
+
+          print(f'Supabase OK; successfully loaded {len(sample)} random photo(s).')
+          PY
