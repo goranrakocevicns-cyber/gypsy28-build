@@ -17,13 +17,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Backup published Supabase content and images
         env:
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_a-kAHWFg9Kv3GFVGvxIjTg_c6QlqZbB
         run: |
           python3 - <<'PY'
           import json, urllib.request, pathlib, os, shutil
           U='https://kfpdzqwtninhdkwtjruc.supabase.co'
-          K=os.environ.get('SUPABASE_SERVICE_ROLE_KEY','').strip()
-          if not K: raise SystemExit('Missing SUPABASE_SERVICE_ROLE_KEY repository secret')
+          K=os.environ['SUPABASE_PUBLISHABLE_KEY']
           H={'apikey':K,'Authorization':'Bearer '+K}
           def get(path):
               r=urllib.request.Request(U+'/rest/v1/'+path,headers=H)
@@ -40,14 +39,14 @@ jobs:
               gallery=[]
               for x in by.get(p['id'],[]):
                   storage=x.get('storage_path')
-                  if not storage: continue
-                  src=x.get('public_url') or (U+'/storage/v1/object/public/gypsy28-images/'+storage)
-                  name=str(p['id'])+'-'+pathlib.Path(storage).name
+                  src=x.get('public_url') or (U+'/storage/v1/object/public/gypsy28-images/'+storage if storage else '')
+                  if not src: continue
+                  name=str(p['id'])+'-'+pathlib.Path(storage or src.split('/')[-1]).name
                   dest=root/name
                   req=urllib.request.Request(src,headers=H)
                   with urllib.request.urlopen(req,timeout=60) as r, open(dest,'wb') as f: f.write(r.read())
                   gallery.append('/gypsy28-build/backup-images/'+name)
-              image=gallery[0] if gallery else ''
+              image=gallery[0] if gallery else (p.get('cover_url') or '')
               out.append({'slug':p['slug'],'title':p['title'],'title_en':p.get('title_en'),'date':p['published_at'],'category':p.get('category'),'category_en':p.get('category_en'),'image':image,'gallery':gallery,'body':p.get('body') or '','body_en':p.get('body_en') or '','summary':p.get('summary') or '','summary_en':p.get('summary_en') or ''})
           pathlib.Path('content/posts').mkdir(parents=True,exist_ok=True)
           pathlib.Path('content/posts/index.json').write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding='utf-8')
