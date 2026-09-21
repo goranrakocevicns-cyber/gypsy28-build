@@ -18,13 +18,13 @@ jobs:
       - name: Backup current Supabase content and images
         env:
           SUPABASE_URL: https://kfpdzqwtninhdkwtjruc.supabase.co
-          SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcGR6cXd0bmluaGRrd3RqcnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NzkxMDYsImV4cCI6MjEwNTI1NTEwNn0.6ft3uyJ9lXO2nbyEZtsHvAOd9wsLEYiT5M4MmX_iGaA
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_a-kAHWFg9Kv3GFVGvxIjTg_c6QlqZbB
         run: |
           python3 - <<'PY'
           import json, urllib.request, pathlib, shutil, os
           U=os.environ['SUPABASE_URL']
-          K=os.environ['SUPABASE_ANON_KEY']
-          H={'apikey':K,'Authorization':'Bearer '+K}
+          K=os.environ['SUPABASE_PUBLISHABLE_KEY']
+          H={'apikey':K}
           def get(path):
               req=urllib.request.Request(U+'/rest/v1/'+path,headers=H)
               with urllib.request.urlopen(req,timeout=30) as r:
