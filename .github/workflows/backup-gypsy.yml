@@ -15,24 +15,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Backup current Supabase content and images
-        env:
-          SUPABASE_URL: https://kfpdzqwtninhdkwtjruc.supabase.co
-          SUPABASE_PUBLISHABLE_KEY: sb_publishable_a-kAHWFg9Kv3GFVGvxIjTg_c6QlqZbB
+        with:
+          fetch-depth: 0
+
+      - name: Download current published content
         run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 --retry-delay 2 \
+            'https://kfpdzqwtninhdkwtjruc.supabase.co/functions/v1/gypsy-public-backup' \
+            -o /tmp/gypsy-backup.json
           python3 - <<'PY'
-          import json, urllib.request, pathlib, shutil, os
-          U=os.environ['SUPABASE_URL']
-          K=os.environ['SUPABASE_PUBLISHABLE_KEY']
-          H={'apikey':K}
-          def get(path):
-              req=urllib.request.Request(U+'/rest/v1/'+path,headers=H)
-              with urllib.request.urlopen(req,timeout=30) as r:
-                  return json.load(r)
-          posts=get('posts?published=eq.true&select=*&order=published_at.desc')
-          photos=get('post_photos?select=post_id,public_url,storage_path,sort_order&order=sort_order.asc')
+          import json, pathlib, shutil, urllib.request
+          raw=json.load(open('/tmp/gypsy-backup.json',encoding='utf-8'))
+          posts=raw.get('posts',[])
+          photos=raw.get('photos',[])
           by={}
-          for x in photos: by.setdefault(x['post_id'],[]).append(x)
+          for x in photos:
+              by.setdefault(x['post_id'],[]).append(x)
           root=pathlib.Path('backup-images')
           if root.exists(): shutil.rmtree(root)
           root.mkdir(exist_ok=True)
@@ -41,25 +40,39 @@ jobs:
               gallery=[]
               for x in by.get(p['id'],[]):
                   storage=x.get('storage_path')
-                  src=x.get('public_url') or (U+'/storage/v1/object/public/gypsy28-images/'+storage if storage else '')
+                  src=x.get('public_url') or ('https://kfpdzqwtninhdkwtjruc.supabase.co/storage/v1/object/public/gypsy28-images/'+storage if storage else '')
                   if not src: continue
-                  name=str(p['id'])+'-'+pathlib.Path(storage or src.split('/')[-1]).name
-                  dest=root/name
-                  with urllib.request.urlopen(urllib.request.Request(src),timeout=60) as r, open(dest,'wb') as f:
-                      f.write(r.read())
-                  gallery.append('/gypsy28-build/backup-images/'+name)
-              image=gallery[0] if gallery else (p.get('cover_url') or '')
-              out.append({'slug':p['slug'],'title':p['title'],'title_en':p.get('title_en'),'date':p['published_at'],'category':p.get('category'),'category_en':p.get('category_en'),'image':image,'gallery':gallery,'body':p.get('body') or '','body_en':p.get('body_en') or '','summary':p.get('summary') or '','summary_en':p.get('summary_en') or ''})
+                  name=str(p['id'])+'-'+pathlib.Path(storage or src.split('/')[-1].split('?')[0]).name
+                  try:
+                      with urllib.request.urlopen(src,timeout=60) as r, open(root/name,'wb') as f: f.write(r.read())
+                      gallery.append('/gypsy28-build/backup-images/'+name)
+                  except Exception as e:
+                      print('Image backup warning:',src,e)
+              out.append({
+                  'slug':p['slug'],'title':p['title'],'title_en':p.get('title_en'),
+                  'date':p['published_at'],'category':p.get('category'),'category_en':p.get('category_en'),
+                  'image':gallery[0] if gallery else (p.get('cover_url') or ''),'gallery':gallery,
+                  'body':p.get('body') or '','body_en':p.get('body_en') or '',
+                  'summary':p.get('summary') or '','summary_en':p.get('summary_en') or ''
+              })
           pathlib.Path('content/posts').mkdir(parents=True,exist_ok=True)
           pathlib.Path('content/posts/index.json').write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding='utf-8')
           pathlib.Path('fallback-data.js').write_text('window.GYPSY_FALLBACK='+json.dumps(out,ensure_ascii=False,separators=(',',':'))+';\n',encoding='utf-8')
-          print(f'Backed up {len(posts)} published posts and {len(photos)} photo records')
+          print(f'BACKUP_OK posts={len(posts)} photos={len(photos)} downloaded_images={sum(len(p["gallery"]) for p in out)}')
+          if not posts:
+              raise SystemExit('Refusing to save an empty backup')
           PY
+
       - name: Save backup in repository
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A content/posts/index.json fallback-data.js backup-images/
-          git diff --cached --quiet && exit 0
+          if git diff --cached --quiet; then
+            echo 'Backup verified; no content changes.'
+            exit 0
+          fi
           git commit -m "Automatic Gypsy 28 content backup"
-          git push
+          git pull --rebase origin main
+          git push origin HEAD:main
