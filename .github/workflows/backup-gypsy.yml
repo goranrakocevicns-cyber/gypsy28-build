@@ -15,17 +15,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Backup published Supabase content and images
+      - name: Backup current Supabase content and images
+        env:
+          SUPABASE_URL: https://kfpdzqwtninhdkwtjruc.supabase.co
+          SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcGR6cXd0bmluaGRrd3RqcnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NzkxMDYsImV4cCI6MjEwNTI1NTEwNn0.6ft3uyJ9lXO2nbyEZtsHvAOd9wsLEYiT5M4MmX_iGaA
         run: |
           python3 - <<'PY'
-          import json, urllib.request, pathlib, re, shutil
-          loader=pathlib.Path('supabase-content-loader.js').read_text(encoding='utf-8')
-          U=re.search(r"const U='([^']+)'",loader).group(1)
-          K=re.search(r",K='([^']+)'",loader).group(1)
-          H={'apikey':K}
+          import json, urllib.request, pathlib, shutil, os
+          U=os.environ['SUPABASE_URL']
+          K=os.environ['SUPABASE_ANON_KEY']
+          H={'apikey':K,'Authorization':'Bearer '+K}
           def get(path):
-              r=urllib.request.Request(U+'/rest/v1/'+path,headers=H)
-              return json.load(urllib.request.urlopen(r,timeout=30))
+              req=urllib.request.Request(U+'/rest/v1/'+path,headers=H)
+              with urllib.request.urlopen(req,timeout=30) as r:
+                  return json.load(r)
           posts=get('posts?published=eq.true&select=*&order=published_at.desc')
           photos=get('post_photos?select=post_id,public_url,storage_path,sort_order&order=sort_order.asc')
           by={}
@@ -42,8 +45,8 @@ jobs:
                   if not src: continue
                   name=str(p['id'])+'-'+pathlib.Path(storage or src.split('/')[-1]).name
                   dest=root/name
-                  req=urllib.request.Request(src)
-                  with urllib.request.urlopen(req,timeout=60) as r, open(dest,'wb') as f: f.write(r.read())
+                  with urllib.request.urlopen(urllib.request.Request(src),timeout=60) as r, open(dest,'wb') as f:
+                      f.write(r.read())
                   gallery.append('/gypsy28-build/backup-images/'+name)
               image=gallery[0] if gallery else (p.get('cover_url') or '')
               out.append({'slug':p['slug'],'title':p['title'],'title_en':p.get('title_en'),'date':p['published_at'],'category':p.get('category'),'category_en':p.get('category_en'),'image':image,'gallery':gallery,'body':p.get('body') or '','body_en':p.get('body_en') or '','summary':p.get('summary') or '','summary_en':p.get('summary_en') or ''})
