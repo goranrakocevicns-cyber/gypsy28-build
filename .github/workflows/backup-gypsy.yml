@@ -16,14 +16,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Backup published Supabase content and images
-        env:
-          SUPABASE_PUBLISHABLE_KEY: sb_publishable_a-kAHWFg9Kv3GFVGvxIjTg_c6QlqZbB
         run: |
           python3 - <<'PY'
-          import json, urllib.request, pathlib, os, shutil
-          U='https://kfpdzqwtninhdkwtjruc.supabase.co'
-          K=os.environ['SUPABASE_PUBLISHABLE_KEY']
-          H={'apikey':K,'Authorization':'Bearer '+K}
+          import json, urllib.request, pathlib, re, shutil
+          loader=pathlib.Path('supabase-content-loader.js').read_text(encoding='utf-8')
+          U=re.search(r"const U='([^']+)'",loader).group(1)
+          K=re.search(r",K='([^']+)'",loader).group(1)
+          H={'apikey':K}
           def get(path):
               r=urllib.request.Request(U+'/rest/v1/'+path,headers=H)
               return json.load(urllib.request.urlopen(r,timeout=30))
@@ -43,7 +42,7 @@ jobs:
                   if not src: continue
                   name=str(p['id'])+'-'+pathlib.Path(storage or src.split('/')[-1]).name
                   dest=root/name
-                  req=urllib.request.Request(src,headers=H)
+                  req=urllib.request.Request(src)
                   with urllib.request.urlopen(req,timeout=60) as r, open(dest,'wb') as f: f.write(r.read())
                   gallery.append('/gypsy28-build/backup-images/'+name)
               image=gallery[0] if gallery else (p.get('cover_url') or '')
@@ -51,6 +50,7 @@ jobs:
           pathlib.Path('content/posts').mkdir(parents=True,exist_ok=True)
           pathlib.Path('content/posts/index.json').write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding='utf-8')
           pathlib.Path('fallback-data.js').write_text('window.GYPSY_FALLBACK='+json.dumps(out,ensure_ascii=False,separators=(',',':'))+';\n',encoding='utf-8')
+          print(f'Backed up {len(posts)} published posts and {len(photos)} photo records')
           PY
       - name: Save backup in repository
         run: |
