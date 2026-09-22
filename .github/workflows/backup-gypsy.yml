@@ -3,7 +3,8 @@ name: Backup Gypsy 28 content
 on:
   workflow_dispatch:
   push:
-    paths: ['.github/workflows/backup-gypsy.yml']
+    paths:
+      - '.github/workflows/backup-gypsy.yml'
   schedule:
     - cron: '27 2 * * *'
 
@@ -13,30 +14,46 @@ permissions:
 jobs:
   backup:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Download current published content
+      - name: Download and validate current published content
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --retry 3 --retry-delay 2 \
-            'https://kfpdzqwtninhdkwtjruc.supabase.co/functions/v1/gypsy-public-backup' \
-            -o /tmp/gypsy-backup.json
+          ENDPOINT='https://kfpdzqwtninhdkwtjruc.supabase.co/functions/v1/gypsy-public-backup'
+          curl --fail --silent --show-error --location --retry 5 --retry-all-errors --connect-timeout 20 --max-time 120 \
+            "$ENDPOINT" -o /tmp/gypsy-backup.json
           python3 - <<'PY'
           import json, pathlib, shutil, urllib.request
+
           raw=json.load(open('/tmp/gypsy-backup.json',encoding='utf-8'))
-          posts=raw.get('posts',[])
+          if not isinstance(raw,dict):
+              raise SystemExit('Invalid backup response: expected JSON object')
+          posts=raw.get('posts')
           photos=raw.get('photos',[])
+          if not isinstance(posts,list) or not posts:
+              raise SystemExit('Refusing to save an empty or invalid posts backup')
+          if not isinstance(photos,list):
+              raise SystemExit('Invalid backup response: photos must be a list')
+
           by={}
           for x in photos:
-              by.setdefault(x['post_id'],[]).append(x)
+              if isinstance(x,dict) and x.get('post_id') is not None:
+                  by.setdefault(x['post_id'],[]).append(x)
+
           root=pathlib.Path('backup-images')
-          if root.exists(): shutil.rmtree(root)
-          root.mkdir(exist_ok=True)
+          tmp=pathlib.Path('/tmp/gypsy-backup-images')
+          if tmp.exists(): shutil.rmtree(tmp)
+          tmp.mkdir(parents=True)
           out=[]
+          downloaded=0
+
           for p in posts:
+              if not isinstance(p,dict) or not p.get('id') or not p.get('slug') or not p.get('title'):
+                  raise SystemExit('Invalid post in backup response')
               gallery=[]
               for x in by.get(p['id'],[]):
                   storage=x.get('storage_path')
@@ -44,23 +61,27 @@ jobs:
                   if not src: continue
                   name=str(p['id'])+'-'+pathlib.Path(storage or src.split('/')[-1].split('?')[0]).name
                   try:
-                      with urllib.request.urlopen(src,timeout=60) as r, open(root/name,'wb') as f: f.write(r.read())
+                      req=urllib.request.Request(src,headers={'User-Agent':'gypsy28-backup/1.0'})
+                      with urllib.request.urlopen(req,timeout=60) as r, open(tmp/name,'wb') as f:
+                          f.write(r.read())
                       gallery.append('/gypsy28-build/backup-images/'+name)
+                      downloaded += 1
                   except Exception as e:
                       print('Image backup warning:',src,e)
               out.append({
                   'slug':p['slug'],'title':p['title'],'title_en':p.get('title_en'),
-                  'date':p['published_at'],'category':p.get('category'),'category_en':p.get('category_en'),
+                  'date':p.get('published_at'),'category':p.get('category'),'category_en':p.get('category_en'),
                   'image':gallery[0] if gallery else (p.get('cover_url') or ''),'gallery':gallery,
                   'body':p.get('body') or '','body_en':p.get('body_en') or '',
                   'summary':p.get('summary') or '','summary_en':p.get('summary_en') or ''
               })
+
           pathlib.Path('content/posts').mkdir(parents=True,exist_ok=True)
           pathlib.Path('content/posts/index.json').write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding='utf-8')
           pathlib.Path('fallback-data.js').write_text('window.GYPSY_FALLBACK='+json.dumps(out,ensure_ascii=False,separators=(',',':'))+';\n',encoding='utf-8')
-          print(f'BACKUP_OK posts={len(posts)} photos={len(photos)} downloaded_images={sum(len(p["gallery"]) for p in out)}')
-          if not posts:
-              raise SystemExit('Refusing to save an empty backup')
+          if root.exists(): shutil.rmtree(root)
+          shutil.move(str(tmp),str(root))
+          print(f'BACKUP_OK posts={len(posts)} photos={len(photos)} downloaded_images={downloaded}')
           PY
 
       - name: Save backup in repository
